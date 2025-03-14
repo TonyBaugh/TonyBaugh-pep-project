@@ -65,7 +65,7 @@ public class ConnectionUtil {
 	 */
 	public static void resetTestDatabase() {
 		try {
-			FileReader sqlReader = new FileReader("src/main/resources/SocialMedia.sql");
+			FileReader sqlReader = new FileReader("src/main/resources/SocialMedia.sql");			
 			RunScript.execute(getConnection(), sqlReader);
 		} catch (SQLException | FileNotFoundException e) {
 			e.printStackTrace();
