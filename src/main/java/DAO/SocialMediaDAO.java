@@ -28,7 +28,7 @@ public class SocialMediaDAO {
     }
 
     /*
-     * Add new account
+     *                          ***** REGISTER NEW ACCOUNT *****       
     */
     public static Account addAccount(Account account) {
         Connection conn = ConnectionUtil.getConnection();      
@@ -36,7 +36,7 @@ public class SocialMediaDAO {
         try {
             String sql = "INSERT INTO account (username, password) VALUES (?, ?);";
 
-            PreparedStatement ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             
             ps.setString(1, account.getUsername());
             ps.setString(2, account.getPassword());
@@ -44,9 +44,12 @@ public class SocialMediaDAO {
             int rowsAffected = ps.executeUpdate();
             System.out.printf("%d rows affected!\n Account added: \n", rowsAffected);
             
-            // Return new account details
-            return userLogin(account);
-
+            // Retrieve auto-generated message_id for return body
+            ResultSet keys = ps.getGeneratedKeys();
+            if (keys.next()) {
+                int newAccountId = keys.getInt(1);
+                return new Account(newAccountId, account.getUsername(), account.getPassword());
+            }
         }
         catch (SQLException sqle) {
             System.out.println("Error: " + sqle.getMessage());
@@ -56,35 +59,9 @@ public class SocialMediaDAO {
         return null;
     }
 
+    
     /*
-     * Retrieve a list of all accounts ( Test Feature ) 
-     */
-
-    public static List<Account> retrieveAll() {
-        Connection conn = ConnectionUtil.getConnection();
-        List<Account> accountList = new ArrayList<>();
-        try {
-            String sql = "SELECT * FROM account;";
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-            while (rs.next()) {
-                Account account = new Account(rs.getInt("account_id"), rs.getString("username"), 
-                                              rs.getString("password"));
-                accountList.add(account);
-            }
-        } catch (SQLException sqle) {
-            System.out.println("Error: " + sqle.getMessage());
-            sqle.printStackTrace();
-        }
-        System.out.println("Account list returned, size: " + accountList.size());
-        System.out.println(accountList);
-        
-        // Return list of accounts
-        return accountList;
-    }
-
-    /*
-     * Retrieve Account by ID ( For validations )
+     *                          ***** RETRIEVE ACCOUNT BY ID ( FOR VALIDATIONS ) *****
      */
 
      public static Account retrieveAccountById(int account_id) {
@@ -112,7 +89,7 @@ public class SocialMediaDAO {
      }
 
     /*
-     *  Retrieve all usernames ( For registration validation )
+     *                          ***** RETRIEVE ALL USERNAMES ( FOR ACCOUNT VERIFICATION ) *****
      */
     public static List<String> retrieveAllUsernames() {
         Connection conn = ConnectionUtil.getConnection();
@@ -137,7 +114,7 @@ public class SocialMediaDAO {
 
     
     /*
-     * Verify user login credentials
+     *                          ***** VERIFY USER LOGIN CREDENTIALS *****
      */
     public static Account userLogin(Account account) {
         Connection conn = ConnectionUtil.getConnection();        
@@ -163,7 +140,7 @@ public class SocialMediaDAO {
     }
 
     /*
-     * Post a new message
+     *                          ***** POST A NEW MESSAGE *******
      */
 
     public static Message postMessage(Message message) {
@@ -197,7 +174,7 @@ public class SocialMediaDAO {
     }
 
     /*
-     * Retrieve All Messages
+     *                          ***** RETRIEVE ALL MESSAGES *****
      */
 
     public static List<Message> retrieveAllMessages() {
@@ -220,6 +197,10 @@ public class SocialMediaDAO {
         }
         return messageList;
     }
+
+    /*
+     *                          ***** RETRIEVE MESSAGE BY ID *****
+     */
 
     public static Message retrieveMessageById(int message_id) {
         Connection conn = ConnectionUtil.getConnection();
@@ -245,6 +226,10 @@ public class SocialMediaDAO {
         return null;
     }
 
+    
+    /*
+     *                          ***** DELETE MESSAGE BY ID *****
+     */
     public static void deleteMessageById(int message_id) {
         Connection conn = ConnectionUtil.getConnection();
 
@@ -264,6 +249,9 @@ public class SocialMediaDAO {
         }
     }
 
+    /*
+     *                          ***** UPDATE MESSAGE BY ID *****    
+     */
     public static Message updateMessageById(String message_text, int message_id) {
         Connection conn = ConnectionUtil.getConnection();
 
@@ -291,7 +279,9 @@ public class SocialMediaDAO {
         return null;
     }
 
-    // Retrieve messages by user
+    /*
+     *                          ***** RETRIEVE ALL MESSAGES FROM A SINGLE USER *****
+     */
     public static List<Message> retrieveMessagesByUser(int accountID) {
         Connection conn = ConnectionUtil.getConnection();
         List<Message> messageList = new ArrayList<>();
